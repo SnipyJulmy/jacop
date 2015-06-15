@@ -32,7 +32,10 @@
 
 package org.jacop.fz;
 
-import org.jacop.core.FailException;
+import org.jacop.core.*;
+import org.jacop.set.core.SetVar;
+
+import java.util.ArrayList;
 
 /**
  * 
@@ -43,6 +46,8 @@ import org.jacop.core.FailException;
  */
 
 public class Fz2jacop {
+
+	public static ArrayList<Var> bestSolution;
 
     /**
      * It parses the provided file and parsing parameters followed by problem solving. 
@@ -90,6 +95,68 @@ public class Fz2jacop {
 	try {	    
 
 	    parser.model();
+
+        if(bestSolution.size() > 0)
+        {
+            for(int i = 0; i < bestSolution.size(); i++)
+            {
+                Var v = bestSolution.get(i);
+
+                if(v instanceof BooleanVar)
+                {
+                    // print boolean variables
+                    String boolVar = v.id() + " = ";
+                    if(v.singleton())
+                    {
+                        switch(((BooleanVar) v).value())
+                        {
+                            case 0:
+                                boolVar += "false";
+                                break;
+                            case 1:
+                                boolVar += "true";
+                                break;
+                            default:
+                                boolVar += v.dom();
+                        }
+                    }
+                    else
+                    {
+                        boolVar += "false..true";
+                    }
+                    System.out.println(boolVar + ";");
+                }
+                else if(v instanceof SetVar)
+                {
+                    // print set variables
+                    String setVar = v.id() + " = ";
+                    if(v.singleton())
+                    {
+                        IntDomain glb = ((SetVar) v).dom().glb();
+                        setVar += "{";
+                        for(ValueEnumeration e = glb.valueEnumeration(); e.hasMoreElements(); )
+                        {
+                            int element = e.nextElement();
+                            setVar += element;
+                            if(e.hasMoreElements())
+                            {
+                                setVar += ", ";
+                            }
+                        }
+                        setVar += "}";
+                    }
+                    else
+                    {
+                        setVar += v.dom().toString();
+                    }
+                    System.out.println(setVar + ";");
+                }
+                else // objective function
+                {
+                    System.out.println(v + ";");
+                }
+            }
+        }
 
 	} catch (FailException e) {
             System.out.println("=====UNSATISFIABLE====="); // "*** Evaluation of model resulted in fail.");
